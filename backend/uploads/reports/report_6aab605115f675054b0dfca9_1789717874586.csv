@@ -1,0 +1,3 @@
+"Date","Query","Region","Phenomenon","Metric","Value","Area Affected (km2)","Change vs Baseline (%)","Confidence (%)","Status"
+"2026-09-17T18:30:11.140Z","Show me flood conditions around 27.0N, 94.2E in Majuli, Assam.","Majuli, Assam","flood","NDWI","","","","0","failed"
+"2026-09-17T18:29:41.968Z","Show me flood conditions around 27.0N, 94.2E in Majuli, Assam.","Majuli, Assam","flood","NDWI","","","","0","failed"

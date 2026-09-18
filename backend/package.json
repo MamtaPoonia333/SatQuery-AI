@@ -1,0 +1,32 @@
+{
+  "name": "satquery-ai-backend",
+  "version": "1.0.0",
+  "description": "Complete backend for SatQuery AI (SIH26167) — auth, query/explore, alerts, reports, dashboard, and a real AI pipeline (LangChain + Pinecone + Sentinel Hub) with graceful fallback when API keys aren't configured.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@langchain/core": "^1.2.11",
+    "@langchain/mistralai": "^1.2.0",
+    "@pinecone-database/pinecone": "^9.0.0",
+    "axios": "^1.20.0",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "ioredis": "^6.0.0",
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
+    "leaflet": "^1.9.4",
+    "mongoose": "^8.5.1",
+    "morgan": "^1.12.1",
+    "multer": "^2.4.0",
+    "react-leaflet": "^5.0.0",
+    "sharp": "^0.35.4"
+  }
+}
