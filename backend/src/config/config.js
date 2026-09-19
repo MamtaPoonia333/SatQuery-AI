@@ -37,8 +37,8 @@ const config = {
   // ===== AI layer (all OPTIONAL — the app falls back gracefully when any of
   // these are missing; see src/services/aiPipeline.service.js) =====
   mistralApiKey: process.env.MISTRAL_API_KEY || null,
-  geminiApiKey: process.env.GEMINI_API_KEY,
-geminiChatModel:process.env.GEMINI_CHAT_MODEL || "gemini-3.6-flash",
+  groqApiKey: process.env.GROQ_API_KEY || null,
+  groqChatModel: process.env.GROQ_CHAT_MODEL || "meta-llama/llama-4-scout-17b-16e-instruct",
   mistralChatModel: process.env.MISTRAL_CHAT_MODEL || "mistral-large-latest",
   mistralEmbeddingModel: process.env.MISTRAL_EMBEDDING_MODEL || "mistral-embed",
 

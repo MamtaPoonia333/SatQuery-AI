@@ -9,7 +9,6 @@
     "dev": "node --watch server.js"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "@langchain/core": "^1.2.11",
     "@langchain/mistralai": "^1.2.0",
     "@pinecone-database/pinecone": "^9.0.0",

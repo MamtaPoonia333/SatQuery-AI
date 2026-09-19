@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Topbar from "../../../shared/components/Topbar.jsx";
 import { listRemoteAnalyses, runRemoteAnalysis } from "../services/analysis.api.js";
 import "../../../style/analysis.css";
@@ -24,6 +24,7 @@ const AnalysisLab = () => {
   const [error, setError] = useState(null);
   const [running, setRunning] = useState(false);
   const [history, setHistory] = useState([]);
+  const fileInputRef = useRef(null);
 
   const previews = useMemo(
     () => files.map((file) => ({ file, url: URL.createObjectURL(file) })),
@@ -40,6 +41,7 @@ const AnalysisLab = () => {
     setMode(nextMode);
     setTask(TASKS[nextMode]);
     setFiles([]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
     setRoles(["optical", "sar"]);
     setResult(null);
     setError(null);
@@ -47,6 +49,7 @@ const AnalysisLab = () => {
 
   const onFiles = (event) => {
     setFiles(Array.from(event.target.files || []).slice(0, MODE_CONFIG[mode].count));
+    event.target.value = "";
     setResult(null);
     setError(null);
   };
@@ -86,8 +89,8 @@ const AnalysisLab = () => {
             <p>Choose an input configuration, add supported files from your computer, and let the task router select the analysis path.</p>
           </div>
           <div className="baseline-badge">
-            {result?.modelStatus === "gemini-vision-adapter"
-              ? "Gemini vision active"
+            {result?.modelStatus === "groq-vision-adapter"
+              ? "Groq vision active"
               : "Vision adapter ready"}
           </div>
         </section>
@@ -109,7 +112,7 @@ const AnalysisLab = () => {
 
             <label className="field-label" htmlFor="analysis-files">IMAGERY FILES</label>
             <div className="file-drop">
-              <input id="analysis-files" type="file" multiple={MODE_CONFIG[mode].count === 2} accept=".tif,.tiff,.png,.jpg,.jpeg,image/tiff,image/png,image/jpeg" onChange={onFiles} />
+              <input ref={fileInputRef} id="analysis-files" type="file" multiple={MODE_CONFIG[mode].count === 2} accept=".tif,.tiff,.png,.jpg,.jpeg,image/tiff,image/png,image/jpeg" onChange={onFiles} />
               <strong>Select from computer</strong>
               <span>GeoTIFF, TIFF, PNG, or JPEG · up to 50 MB each · {MODE_CONFIG[mode].count} file{MODE_CONFIG[mode].count > 1 ? "s" : ""}</span>
             </div>
@@ -121,6 +124,7 @@ const AnalysisLab = () => {
             )}
 
             {error && <div className="analysis-error">{error}</div>}
+            {files.length !== MODE_CONFIG[mode].count && <div className="analysis-file-status">Select {MODE_CONFIG[mode].count} image{MODE_CONFIG[mode].count > 1 ? "s" : ""} to enable analysis.</div>}
             <button className="analysis-submit" type="submit" disabled={running || files.length !== MODE_CONFIG[mode].count}>
               {running ? "Routing and analysing..." : "Run specialist analysis"}
             </button>

@@ -25,6 +25,7 @@
 .analysis-submit { width: 100%; margin-top: 18px; }
 .analysis-submit:disabled { opacity: .45; cursor: not-allowed; }
 .analysis-error { color: var(--coral); background: var(--coral-soft); border-radius: 6px; padding: 10px; margin-top: 12px; font-size: 12px; }
+.analysis-file-status { color: var(--dim); font-size: 12px; margin-top: 12px; }
 .panel-title { margin-bottom: 12px; }
 .preview-empty { height: 100%; min-height: 360px; display: grid; place-items: center; padding: 40px; color: var(--dim-2); text-align: center; background: #f7f9fc; border-radius: var(--radius-md); }
 .preview-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }

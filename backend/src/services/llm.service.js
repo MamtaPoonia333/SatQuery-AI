@@ -1,9 +1,8 @@
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import axios from "axios";
 import sharp from "sharp";
-import { PromptTemplate } from "@langchain/core/prompts";
 import config from "../config/config.js";
 
 dotenv.config({
@@ -13,40 +12,26 @@ dotenv.config({
   ),
 });
 
-const geminiApiKey =
-  process.env.GEMINI_API_KEY || config.geminiApiKey;
+const groqApiKey = process.env.GROQ_API_KEY || config.groqApiKey;
 
-const geminiChatModel =
-  process.env.GEMINI_CHAT_MODEL ||
-  config.geminiChatModel ||
-  "gemini-3.6-flash";
+const groqChatModel =
+  process.env.GROQ_CHAT_MODEL ||
+  config.groqChatModel ||
+  "meta-llama/llama-4-scout-17b-16e-instruct";
 
-let geminiClient = null;
-let chatClient = null;
-
-const getGeminiClient = () => {
-  if (!geminiClient) {
-    geminiClient = new GoogleGenerativeAI(geminiApiKey);
-  }
-
-  return geminiClient;
-};
-
-const getChatClient = () => {
-  if (!chatClient) {
-    chatClient = getGeminiClient().getGenerativeModel({
-      model: geminiChatModel,
-    });
-  }
-
-  return chatClient;
-};
+const groqClient = axios.create({
+  baseURL: "https://api.groq.com/openai/v1",
+  headers: {
+    Authorization: `Bearer ${groqApiKey || ""}`,
+    "Content-Type": "application/json",
+  },
+});
 
 /**
- * Checks whether Gemini is configured.
+ * Checks whether Groq is configured.
  */
 export const isLLMConfigured = () => {
-  return Boolean(geminiApiKey);
+  return Boolean(groqApiKey);
 };
 
 const visionPrompt = ({ mode, task, roles }) => `You are a remote-sensing vision analyst. Analyze the supplied ${mode} imagery for this task:
@@ -83,13 +68,21 @@ export const analyzeImagesWithVision = async ({ files, mode, task, roles }) => {
   if (!isLLMConfigured()) return null;
 
   try {
-    const parts = [{ text: visionPrompt({ mode, task, roles }) }];
+    const content = [{ type: "text", text: visionPrompt({ mode, task, roles }) }];
     for (const file of files) {
-      parts.push({ inlineData: await prepareVisionImage(file) });
+      const image = await prepareVisionImage(file);
+      content.push({
+        type: "image_url",
+        image_url: { url: `data:${image.mimeType};base64,${image.data}` },
+      });
     }
 
-    const result = await getChatClient().generateContent(parts);
-    const raw = result.response.text().trim();
+    const response = await groqClient.post("/chat/completions", {
+      model: groqChatModel,
+      temperature: 0.2,
+      messages: [{ role: "user", content }],
+    });
+    const raw = response.data.choices?.[0]?.message?.content?.trim() || "";
     const cleaned = raw
       .replace(/^```json\s*/i, "")
       .replace(/^```\s*/i, "")
@@ -102,7 +95,7 @@ export const analyzeImagesWithVision = async ({ files, mode, task, roles }) => {
       confidence: Math.max(0, Math.min(100, Number(parsed.confidence) || 0)),
       observations: Array.isArray(parsed.observations) ? parsed.observations : [],
       limitations: Array.isArray(parsed.limitations) ? parsed.limitations : [],
-      model: geminiChatModel,
+      model: groqChatModel,
     };
   } catch (error) {
     console.warn("Vision analysis failed:", error.message);
@@ -111,25 +104,27 @@ export const analyzeImagesWithVision = async ({ files, mode, task, roles }) => {
 };
 
 /**
- * Generates text using Gemini.
+ * Generates text using Groq.
  */
 const generateText = async (prompt) => {
-  const model = getChatClient();
+  const response = await groqClient.post("/chat/completions", {
+    model: groqChatModel,
+    temperature: 0.2,
+    messages: [{ role: "user", content: prompt }],
+  });
 
-  const result = await model.generateContent(prompt);
-
-  return result.response.text().trim();
+  return response.data.choices?.[0]?.message?.content?.trim() || "";
 };
 
 /**
- * Embeddings are not handled by Gemini chat model.
+ * Embeddings are not handled by the Groq chat model.
  *
  * Return null for now so the pipeline can use the
  * existing rule-based/fallback flow.
  */
 export const embedText = async () => {
   console.warn(
-    "Embedding is not configured for Gemini. Returning null."
+    "Embedding is not configured for Groq. Returning null."
   );
 
   return null;
@@ -162,7 +157,7 @@ export const extractIntent = async (rawQueryText) => {
 
     const raw = await generateText(prompt);
 
-    // Handles accidental markdown fences if Gemini adds them
+    // Handles accidental markdown fences if Groq adds them
     const cleaned = raw
       .replace(/^```json\s*/i, "")
       .replace(/^```\s*/i, "")
